@@ -20,9 +20,9 @@ from deap import base
 from deap import tools
 
 
-#-----------------------------------------------------------------------------
-# Global variables
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+#  Global variables
+# -----------------------------------------------------------------------------
 
 # Allowable characters include all uppercase letters and space
 # You can change these, just be consistent (e.g. in mutate operator)
@@ -32,9 +32,9 @@ VALID_CHARS = string.ascii_uppercase + " "
 VERBOSE = True
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Message object to use in evolutionary algorithm
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class FitnessMinimizeSingle(base.Fitness):
     """
@@ -88,9 +88,9 @@ class Message(list):
         return "".join(self)
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Genetic operators
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
 # HINT: Now would be a great time to implement memoization if you haven't
@@ -103,7 +103,7 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
     distance = levenshtein_distance(message.get_text(), goal_text)
     if verbose:
-        print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
+        print("{msg!s}\t[Distance: {dst!s}]".format(msg=message, dst=distance))
     return (distance, )     # Length 1 tuple, required by DEAP
 
 
@@ -132,9 +132,9 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     return (message, )   # Length 1 tuple, required by DEAP
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # DEAP Toolbox and Algorithm setup
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 def get_toolbox(text):
     """Return DEAP Toolbox configured to evolve given 'text' string"""
@@ -191,10 +191,9 @@ def evolve_string(text):
     return pop, log
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Run if called from the command line
-#-----------------------------------------------------------------------------
-
+# -----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     # Get goal message from command line (optional)
