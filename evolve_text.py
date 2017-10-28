@@ -18,6 +18,7 @@ import numpy    # Used for statistics
 from deap import algorithms
 from deap import base
 from deap import tools
+from functools import lru_cache
 
 
 # -----------------------------------------------------------------------------
@@ -31,7 +32,6 @@ VALID_CHARS = string.ascii_uppercase + " "
 # Control whether all Messages are printed as they are evaluated
 VERBOSE = True
 
-
 # -----------------------------------------------------------------------------
 # Message object to use in evolutionary algorithm
 # -----------------------------------------------------------------------------
@@ -42,7 +42,6 @@ class FitnessMinimizeSingle(base.Fitness):
     objective that we want to minimize (weight = -1)
     """
     weights = (-1.0, )
-
 
 class Message(list):
     """
@@ -87,13 +86,27 @@ class Message(list):
         """Return Message as string (rather than actual list of characters)"""
         return "".join(self)
 
-
 # -----------------------------------------------------------------------------
 # Genetic operators
 # -----------------------------------------------------------------------------
+@lru_cache(maxsize=None)
+def levenshtein_distance(a, b):
+    lenA = len(a)
+    lenB = len(b)
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+    if lenA == 0:
+      return lenB
+    if lenB == 0:
+      return lenA
+
+    if a[0] == b[0]:
+        return levenshtein_distance(a[1:], b[1:])
+    l1 = levenshtein_distance(a, b[1:])
+    l2 = levenshtein_distance(a[1:], b)
+    l3 = levenshtein_distance(a[1:], b[1:])
+    dist = 1 + min(l1, l2, l3)
+
+    return dist
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -105,7 +118,6 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     if verbose:
         print("{msg!s}\t[Distance: {dst!s}]".format(msg=message, dst=distance))
     return (distance, )     # Length 1 tuple, required by DEAP
-
 
 def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
@@ -119,22 +131,40 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
         Substitution:   Replace one character of the Message with a random
                         (legal) character
     """
+    randplace = int(random.random() * len(message))
+    randloc = int(random.random() * len(VALID_CHARS))
+    randchar = VALID_CHARS[randloc]
+    print(randchar)
 
-    if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+    r = random.random()
+    if r < prob_ins:                                                            # Insertion
+        message.insert(randplace, randchar)
+    elif prob_ins < r < (prob_ins + prob_del):                                  # Deletion
+        del message[randplace]
+    elif (prob_ins + prob_del) < r < (prob_ins + prob_del + prob_sub):          # Substitution
+        message[randplace] = randchar
+    else:
+        pass                                                                    # Most of the time, do not mutate
 
     return (message, )   # Length 1 tuple, required by DEAP
-
 
 # -----------------------------------------------------------------------------
 # DEAP Toolbox and Algorithm setup
 # -----------------------------------------------------------------------------
+def two_point_crossover(a, b):
+    """
+    Return tuple of crossed parent strings a, b
+    >>> two_point_crossover("ABCDEF", "UVWXYZ")
+    ("ABWXYF", "UVCDEZ")
+    """
+    maxcrosslen = min(len(a), len(b))
+    cx1 = random.randint(1, maxcrosslen)
+    cx2 = random.randint(1, maxcrosslen - 1)
+
+    anew = a[:cx1] + b[cx1:cx2] + a[cx2:]
+    bnew = b[:cx1] + a[cx1:cx2] + b[cx2:]
+
+    return (Message("".join(anew)), Message("".join(bnew)))
 
 def get_toolbox(text):
     """Return DEAP Toolbox configured to evolve given 'text' string"""
@@ -149,7 +179,7 @@ def get_toolbox(text):
 
     # Genetic operators
     toolbox.register("evaluate", evaluate_text, goal_text=text)
-    toolbox.register("mate", tools.cxTwoPoint)
+    toolbox.register("mate", two_point_crossover)
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
@@ -189,7 +219,6 @@ def evolve_string(text):
                                    stats=stats)
 
     return pop, log
-
 
 # -----------------------------------------------------------------------------
 # Run if called from the command line
