@@ -94,9 +94,13 @@ class Message(list):
 
 def levenshtein_distance(message, goal):
     if len(message) < len(goal):
-        levenshtein_distance(goal, message)
+        return levenshtein_distance(goal, message)
+    #always uses the shorter string as the indicator for how many
+    #steps it will take to get from one to another
     if len(goal) == 0:
         return len(message)
+    #if the length of the goal is = 0, then we just have to see
+    #how long the message is and delete every letter 1 at a time
     previous_row = range(len(goal) + 1)
     for index, counter in enumerate(message):
         current_row = [index + 1]
@@ -105,9 +109,11 @@ def levenshtein_distance(message, goal):
             ins = previous_row[index2 + 1] + 1
             subs = previous_row[index2] + (counter != counter2)
             current_row.append(min(dels, ins, subs))
+            #finds the minimum amount of steps to the goal.
         previous_row = current_row
 
     return previous_row[-1]
+
 # HINT: Now would be a great time to implement memoization if you haven't
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
@@ -138,24 +144,30 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     if random.random() < prob_ins:
         r = random.randint(1, len(message)-1)
         message = message[:r] + random.choice(VALID_CHARS) + message[r:]
+        #cuts the string randomly and inserts a random valid character
     if random.random() < prob_del:
         r2 = random.randint(1, len(message)-1)
         message = message[:r2 - 1] + message[r2:]
+        #gets a random number between the string and removes that letter
     if random.random() < prob_sub:
         r3 = random.randint(1, len(message)-1)
         message = message[:r3 - 1] + random.choice(VALID_CHARS) + message[r3:]
+        #finds a random character within the string and replaces that character
+        #with a random character
+
 
     # HINT: Message objects inherit from list, so they also inherit
     #       useful list methods
     # HINT: You probably want to use the VALID_CHARS global variable
 
-    return (list(message), )   # Length 1 tuple, required by DEAP
+    return (Message("".join(message)), )   # Length 1 tuple, required by DEAP
 
 def mate_text(parent1, parent2):
     newstring1 = []
     newstring2 = []
     index = 0
     crossover_prob = 0.50
+    # 1/2 chance of characters swapping
     while index < len(parent1) and index < len(parent2):
         if random.random() > crossover_prob:
             newstring1.append(parent2[index])
@@ -164,7 +176,8 @@ def mate_text(parent1, parent2):
             newstring1.append(parent1[index])
             newstring2.append(parent2[index])
         index = index + 1
-    return ("".join(newstring1), "".join(newstring2))
+    return (Message("".join(newstring1)), Message("".join(newstring2)))
+
 
 # -----------------------------------------------------------------------------
 # DEAP Toolbox and Algorithm setup
