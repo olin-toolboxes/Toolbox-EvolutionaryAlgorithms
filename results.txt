@@ -1,0 +1,5 @@
+I apologize in advance for not being able to completely debug my code. I could not find the error within
+the sections that I was supposed to implement. Maybe I modified the the Message class in my code when I wasn't supposed to.
+Because the submission date is tonight, I won't be able to debug my code, but each independent section works as implied and
+I will revise this for the future.
+
