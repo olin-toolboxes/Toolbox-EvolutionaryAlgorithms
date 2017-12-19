@@ -1,18 +1,15 @@
-"""
-Evolutionary algorithm, attempts to evolve a given message string.
+"""Evolutionary algorithm, attempts to evolve a given message string.
 
 Uses the DEAP (Distributed Evolutionary Algorithms in Python) framework,
 http://deap.readthedocs.org
 
 Usage:
     python evolve_text.py [goal_message]
-
-Full instructions are at:
-https://sites.google.com/site/sd15spring/home/project-toolbox/evolutionary-algorithms
 """
 
 import random
 import string
+import sys
 
 import numpy    # Used for statistics
 from deap import algorithms
@@ -41,19 +38,18 @@ class FitnessMinimizeSingle(base.Fitness):
     Class representing the fitness of a given individual, with a single
     objective that we want to minimize (weight = -1)
     """
-    weights = (-1.0, )
+    weights = (-1.0,)
 
 
 class Message(list):
-    """
-    Representation of an individual Message within the population to be evolved
+    """An individual Message within the population to be evolved.
 
     We represent the Message as a list of characters (mutable) so it can
     be more easily manipulated by the genetic operators.
     """
+
     def __init__(self, starting_string=None, min_length=4, max_length=30):
-        """
-        Create a new Message individual.
+        """Create a new Message individual.
 
         If starting_string is given, initialize the Message with the
         provided string message. Otherwise, initialize to a random string
@@ -74,7 +70,7 @@ class Message(list):
                 self.append(random.choice(VALID_CHARS))
 
     def __repr__(self):
-        """Return a string representation of the Message"""
+        """Return a string representation of the Message."""
         # Note: __repr__ (if it exists) is called by __str__. It should provide
         #       the most unambiguous representation of the object possible, and
         #       ideally eval(repr(obj)) == obj
@@ -84,7 +80,7 @@ class Message(list):
                                val=self.get_text())
 
     def get_text(self):
-        """Return Message as string (rather than actual list of characters)"""
+        """Return Message as a string (rather than actual list of characters)."""
         return "".join(self)
 
 
@@ -93,11 +89,10 @@ class Message(list):
 # -----------------------------------------------------------------------------
 
 # TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+# HINT: Now would be a great time to implement memoization if you haven't.
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
-    """
-    Given a Message and a goal_text string, return the Levenshtein distance
+    """Given a Message and a goal_text string, return the Levenshtein distance
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
@@ -108,8 +103,7 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
 
 
 def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
-    """
-    Given a Message and independent probabilities for each mutation type,
+    """Given a Message and independent probabilities for each mutation type,
     return a length 1 tuple containing the mutated Message.
 
     Possible mutations are:
@@ -129,7 +123,7 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     #       useful list methods
     # HINT: You probably want to use the VALID_CHARS global variable
 
-    return (message, )   # Length 1 tuple, required by DEAP
+    return (message,)   # Length 1 tuple, required by DEAP
 
 
 # -----------------------------------------------------------------------------
@@ -137,7 +131,7 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
 # -----------------------------------------------------------------------------
 
 def get_toolbox(text):
-    """Return DEAP Toolbox configured to evolve given 'text' string"""
+    """Return a DEAP Toolbox configured to evolve given 'text' string."""
 
     # The DEAP Toolbox allows you to register aliases for functions,
     # which can then be called as "toolbox.function"
@@ -161,14 +155,14 @@ def get_toolbox(text):
 
 
 def evolve_string(text):
-    """Use evolutionary algorithm (EA) to evolve 'text' string"""
+    """Use an evolutionary algorithm (EA) to evolve 'text' string."""
 
     # Set random number generator initial seed so that results are repeatable.
     # See: https://docs.python.org/2/library/random.html#random.seed
     #      and http://xkcd.com/221
     random.seed(4)
 
-    # Get configured toolbox and create a population of random Messages
+    # Get a configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
     pop = toolbox.population(n=300)
 
@@ -197,7 +191,6 @@ def evolve_string(text):
 if __name__ == "__main__":
 
     # Get goal message from command line (optional)
-    import sys
     if len(sys.argv) == 1:
         # Default goal of the evolutionary algorithm if not specified.
         # Pretty much the opposite of http://xkcd.com/534
